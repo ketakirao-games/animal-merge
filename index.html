@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Animal Merge Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .game-header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .game-header h1 {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .game-header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .score {
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 15px 25px;
+            margin-bottom: 20px;
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 25px;
+            padding: 25px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .cell {
+            width: 80px;
+            height: 80px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cell:hover {
+            background: rgba(255,255,255,0.25);
+            transform: scale(1.05);
+        }
+
+        .cell.occupied {
+            background: rgba(255,255,255,0.3);
+            border-color: rgba(255,255,255,0.5);
+        }
+
+        .cell.drag-over {
+            background: rgba(255,255,255,0.4);
+            border-color: #4CAF50;
+            transform: scale(1.1);
+        }
+
+        .animal {
+            font-size: 2.5rem;
+            user-select: none;
+            cursor: grab;
+            transition: all 0.3s ease;
+            filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
+        }
+
+        .animal:active {
+            cursor: grabbing;
+            transform: scale(1.2);
+        }
+
+        .animal.dragging {
+            opacity: 0.7;
+            transform: scale(1.3);
+            z-index: 1000;
+        }
+
+        .controls {
+            margin-top: 30px;
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: white;
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .merge-animation {
+            animation: mergeEffect 0.6s ease-out;
+        }
+
+        @keyframes mergeEffect {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.5) rotate(180deg); }
+            100% { transform: scale(1); }
+        }
+
+        .spawn-animation {
+            animation: spawnEffect 0.5s ease-out;
+        }
+
+        @keyframes spawnEffect {
+            0% { transform: scale(0) rotate(0deg); opacity: 0; }
+            50% { transform: scale(1.3) rotate(180deg); opacity: 0.8; }
+            100% { transform: scale(1) rotate(360deg); opacity: 1; }
+        }
+
+        @media (max-width: 480px) {
+            .game-board {
+                gap: 10px;
+                padding: 20px;
+            }
+            
+            .cell {
+                width: 70px;
+                height: 70px;
+            }
+            
+            .animal {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-header">
+        <h1>🐾 Animal Merge</h1>
+        <p>Drag and drop identical animals to merge them!</p>
+    </div>
+
+    <div class="score">
+        Score: <span id="score">0</span>
+    </div>
+
+    <div class="game-board" id="gameBoard">
+        <!-- 16 cells will be generated by JavaScript -->
+    </div>
+
+    <div class="controls">
+        <button class="btn" onclick="resetGame()">🔄 Reset Game</button>
+        <button class="btn" onclick="addRandomAnimal()">➕ Add Animal</button>
+    </div>
+
+    <script>
+        const animals = [
+            { emoji: '🐕', name: 'dog', level: 1 },
+            { emoji: '🐱', name: 'cat', level: 2 },
+            { emoji: '🐰', name: 'rabbit', level: 3 },
+            { emoji: '🐴', name: 'horse', level: 4 },
+            { emoji: '🐄', name: 'cow', level: 5 },
+            { emoji: '🐅', name: 'tiger', level: 6 },
+            { emoji: '🐵', name: 'monkey', level: 7 },
+            { emoji: '🐘', name: 'elephant', level: 8 },
+            { emoji: '🦓', name: 'zebra', level: 9 },
+            { emoji: '🦒', name: 'giraffe', level: 10 }
+        ];
+
+        let board = Array(16).fill(null);
+        let score = 0;
+        let draggedElement = null;
+        let draggedIndex = null;
+
+        function initGame() {
+            const gameBoard = document.getElementById('gameBoard');
+            gameBoard.innerHTML = '';
+            
+            for (let i = 0; i < 16; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.dataset.index = i;
+                
+                cell.addEventListener('dragover', handleDragOver);
+                cell.addEventListener('drop', handleDrop);
+                cell.addEventListener('dragleave', handleDragLeave);
+                
+                gameBoard.appendChild(cell);
+            }
+            
+            // Add initial animals
+            addRandomAnimal();
+            addRandomAnimal();
+        }
+
+        function addRandomAnimal() {
+            const emptyCells = board.map((cell, index) => cell === null ? index : null).filter(x => x !== null);
+            if (emptyCells.length === 0) return false;
+            
+            const randomIndex = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+            const randomAnimal = animals[Math.floor(Math.random() * Math.min(3, animals.length))]; // Start with easier animals
+            
+            board[randomIndex] = { ...randomAnimal };
+            updateDisplay();
+            return true;
+        }
+
+        function updateDisplay() {
+            const cells = document.querySelectorAll('.cell');
+            cells.forEach((cell, index) => {
+                const animal = board[index];
+                if (animal) {
+                    cell.innerHTML = `<div class="animal" draggable="true" touch-action:none data-index="${index}">${animal.emoji}</div>`;
+                    cell.classList.add('occupied');
+                    
+                    const animalElement = cell.querySelector('.animal');
+                    animalElement.addEventListener('dragstart', handleDragStart);
+                    animalElement.addEventListener('dragend', handleDragEnd);
+                } else {
+                    cell.innerHTML = '';
+                    cell.classList.remove('occupied');
+                }
+            });
+            
+            document.getElementById('score').textContent = score;
+        }
+
+        function handleDragStart(e) {
+            draggedElement = e.target;
+            draggedIndex = parseInt(e.target.dataset.index);
+            e.target.classList.add('dragging');
+            
+            // Create ghost image
+            const ghost = e.target.cloneNode(true);
+            ghost.style.transform = 'scale(1.2)';
+            document.body.appendChild(ghost);
+            e.dataTransfer.setDragImage(ghost, 40, 40);
+            setTimeout(() => document.body.removeChild(ghost), 0);
+        }
+
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+            document.querySelectorAll('.cell').forEach(cell => {
+                cell.classList.remove('drag-over');
+            });
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            const targetIndex = parseInt(e.currentTarget.dataset.index);
+            const draggedAnimal = board[draggedIndex];
+            const targetAnimal = board[targetIndex];
+            
+            // Allow drop if cell is empty or contains same animal
+            if (!targetAnimal || (targetAnimal && draggedAnimal && targetAnimal.level === draggedAnimal.level)) {
+                e.currentTarget.classList.add('drag-over');
+            }
+        }
+
+        function handleDragLeave(e) {
+            e.currentTarget.classList.remove('drag-over');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            const targetIndex = parseInt(e.currentTarget.dataset.index);
+            const draggedAnimal = board[draggedIndex];
+            const targetAnimal = board[targetIndex];
+            
+            e.currentTarget.classList.remove('drag-over');
+            
+            if (targetIndex === draggedIndex) return;
+            
+            if (!targetAnimal) {
+                // Move to empty cell
+                board[targetIndex] = draggedAnimal;
+                board[draggedIndex] = null;
+                updateDisplay();
+            } else if (targetAnimal.level === draggedAnimal.level && targetAnimal.level < animals.length) {
+                // Merge animals
+                const newLevel = targetAnimal.level + 1;
+                const newAnimal = animals[newLevel - 1];
+                
+                board[targetIndex] = { ...newAnimal };
+                board[draggedIndex] = null;
+                
+                // Add merge animation
+                const targetCell = document.querySelector(`[data-index="${targetIndex}"]`);
+                targetCell.classList.add('merge-animation');
+                setTimeout(() => targetCell.classList.remove('merge-animation'), 600);
+                
+                // Update score
+                score += newLevel * 10;
+                
+                updateDisplay();
+                
+                // Add new random animal after merge
+                setTimeout(() => {
+                    if (!addRandomAnimal()) {
+                        checkGameOver();
+                    }
+                }, 300);
+            }
+        }
+
+        function checkGameOver() {
+            const emptyCells = board.filter(cell => cell === null).length;
+            if (emptyCells === 0) {
+                // Check if any merges are possible
+                let canMerge = false;
+                for (let i = 0; i < 16; i++) {
+                    if (!board[i]) continue;
+                    
+                    // Check adjacent cells
+                    const adjacent = [];
+                    if (i % 4 > 0) adjacent.push(i - 1); // left
+                    if (i % 4 < 3) adjacent.push(i + 1); // right
+                    if (i >= 4) adjacent.push(i - 4); // up
+                    if (i < 12) adjacent.push(i + 4); // down
+                    
+                    for (let adj of adjacent) {
+                        if (board[adj] && board[i].level === board[adj].level) {
+                            canMerge = true;
+                            break;
+                        }
+                    }
+                    if (canMerge) break;
+                }
+                
+                if (!canMerge) {
+                    setTimeout(() => {
+                        alert(`Game Over! Final Score: ${score}`);
+                    }, 500);
+                }
+            }
+        }
+
+        function resetGame() {
+            board = Array(16).fill(null);
+            score = 0;
+            updateDisplay();
+            addRandomAnimal();
+            addRandomAnimal();
+        }
+
+        // Initialize the game
+        initGame();
+    </script>
+</body>
+</html>
