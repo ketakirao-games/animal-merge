@@ -254,7 +254,7 @@
             cells.forEach((cell, index) => {
                 const animal = board[index];
                 if (animal) {
-                    cell.innerHTML = `<div class="animal" draggable="true" touch-action:none data-index="${index}">${animal.emoji}</div>`;
+                    cell.innerHTML = `<div class="animal" draggable="true" data-index="${index}">${animal.emoji}</div>`;
                     cell.classList.add('occupied');
                     
                     const animalElement = cell.querySelector('.animal');
