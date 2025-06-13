@@ -208,7 +208,8 @@
         {
             case "touchstart":  type = "mousedown"; break;        
             case "touchmove":  type = "mousemove"; break;        
-            case "touchend":  type = "mouseup"; break;        
+            case "touchend":  type = "mouseup"; break; 
+            case "clicked":  type = "click"; break;
             default:           return;
         }
 
@@ -221,16 +222,20 @@
         first.target.dispatchEvent(simulatedEvent);
         event.preventDefault();
     }
-   
+
+    let drag = false;
     document.addEventListener("touchstart", function(e) {
+        drag = false;
         e.preventDefault();
         touchHandler(e);
     }, { passive: false });
     document.addEventListener("touchmove", function(e) {
+        drag = true;
         e.preventDefault();
         touchHandler(e);
     }, { passive: false });
     document.addEventListener("touchend", function(e) {
+        if(!drag) e = "clicked";
         e.preventDefault();
         touchHandler(e);
     }, { passive: false });
