@@ -212,7 +212,7 @@
                 default:           return;
             }
 
-            var simulatedEvent = document.createEvent("MouseEvent");
+            var simulatedEvent = cell.createEvent("MouseEvent");
             simulatedEvent.initMouseEvent(type, true, true, window, 1,
                                           first.screenX, first.screenY,
                                           first.clientX, first.clientY, false,
@@ -222,15 +222,15 @@
             event.preventDefault();
         }
 
-        gameBoard.addEventListener("touchstart", function(e) {
+        cell.addEventListener("touchstart", function(e) {
             e.preventDefault();
             touchHandler(e);
         }, { passive: false });
-        gameBoard.addEventListener("touchmove", function(e) {
+        cell.addEventListener("touchmove", function(e) {
             e.preventDefault();
             touchHandler(e);
         }, { passive: false });
-        gameBoard.addEventListener("touchend", function(e) {
+        cell.addEventListener("touchend", function(e) {
             e.preventDefault();
             touchHandler(e);
         }, { passive: false });
