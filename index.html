@@ -305,13 +305,15 @@
                 }
             });
             
-            document.getElementById('score').textContent = score;
+            // document.getElementById('score').textContent = score;
         }
 
         function handleDragStart(e) {
             draggedElement = e.target;
             draggedIndex = parseInt(e.target.dataset.index);
             e.target.classList.add('dragging');
+            document.getElementById('score').textContent = " Started dragging " + draggedIndex;
+
             
             // Create ghost image
             const ghost = e.target.cloneNode(true);
@@ -374,7 +376,8 @@
                 
                 // Update score
                 score += newLevel * 10;
-                
+                document.getElementById('score').textContent = " Completed dragging to " + targetIndex;
+
                 updateDisplay();
                 
                 // Add new random animal after merge
