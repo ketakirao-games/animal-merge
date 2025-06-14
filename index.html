@@ -206,9 +206,9 @@
             
             switch(event.type)
             {
-                case "touchstart":  type = "mousedown"; break;
-                case "touchmove":  type = "mousemove"; break;
-                case "touchend":  type = "mouseup"; break;
+                case "touchstart":  type = "dragstart"; break;
+                case "touchmove":  type = "dragover"; break;
+                case "touchend":  type = "drop"; break;
                 default:           return;
             }
 
